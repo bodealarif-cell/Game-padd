@@ -1,0 +1,47 @@
+name: Build NEXUS Controller APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "NEXUS-Controller-source.zip"
+      - ".github/workflows/android.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract source
+        run: |
+          unzip -q NEXUS-Controller-source.zip -d source
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Build debug APK
+        run: gradle -p source/nexus assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: NEXUS-Controller-APK
+          path: source/nexus/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
